@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>EstéticaAgenda Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#FFF5F7',  // Very Light Rose
+                100: '#FFE3EB', // Misty Rose
+                200: '#FFC2D4', // Soft Pink
+                300: '#FF9EBB', // Pastel Pink
+                400: '#FF7AA0', // Rose Pink
+                500: '#F25C88', // Soft Primary (Muted Rose)
+                600: '#D6406E', // Hover State
+                700: '#B32B53', // Deep Rose
+                800: '#911D41', // Text Color
+                900: '#5C0E27', // Darkest
+                950: '#3D0518', // Background Dark
+              },
+              dark: {
+                bg: '#18181b',
+                card: '#27272a',
+                border: '#3f3f46'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Smooth transition for dark mode toggle */
+      body, div, nav, aside, header, button, input, select, textarea {
+        transition-property: background-color, border-color, color, fill, stroke;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+      }
+    </style>
+    <meta name="theme-color" content="#F25C88" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "date-fns/": "https://aistudiocdn.com/date-fns@^4.1.0/",
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-gray-900 dark:bg-zinc-900 dark:text-gray-100 antialiased selection:bg-brand-200 selection:text-brand-900">
+    <div id="root"></div>
+  </body>
+</html>
