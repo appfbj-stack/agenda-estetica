@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { ICONS } from '../constants';
 import { getAppointments, getClients } from '../services/storageService';
 import { Appointment, PaymentStatus, Client } from '../types';
-import { format, isToday } from 'date-fns';
+import { format, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 
@@ -16,14 +17,14 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const todayAppointments = appointments
-    .filter(a => isToday(new Date(a.date)))
+    .filter(a => isToday(new Date(a.date + 'T12:00:00')))
     .sort((a, b) => a.time.localeCompare(b.time));
 
   const stats = {
     todayCount: todayAppointments.length,
     pendingValue: todayAppointments.reduce((acc, curr) => 
       curr.status !== PaymentStatus.PAID ? acc + (curr.price - curr.deposit) : acc, 0),
-    monthCount: appointments.length // Simplified for MVP
+    monthCount: appointments.length 
   };
 
   const handleWhatsApp = (apt: Appointment) => {
@@ -36,14 +37,16 @@ const Dashboard: React.FC = () => {
           return;
       }
   
-      const message = `Olá ${client.name.split(' ')[0]}! ✨ Lembrando do seu horário hoje para *${apt.service}* às ${apt.time}. Até já!`;
+      const dateObj = parseISO(apt.date);
+      const dateFormatted = format(dateObj, "dd/MM (EEEE)", { locale: ptBR });
+
+      const message = `Olá *${client.name.split(' ')[0]}*! ✨ Passando para confirmar seu agendamento de hoje:\n\n📅 *Data:* ${dateFormatted}\n⏰ *Horário:* ${apt.time}\n💆‍♀️ *Procedimento:* ${apt.service}\n\nAté já! 💅`;
       const url = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Welcome Header */}
       <div className="flex justify-between items-end">
         <div>
            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1 capitalize">{format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}</p>
@@ -57,9 +60,7 @@ const Dashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Quick Stats - Pastel Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {/* Card 1: Today - Soft Pastel Pink */}
         <div className="bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/40 dark:to-pink-900/10 p-4 rounded-2xl shadow-sm border border-pink-100 dark:border-pink-800 flex flex-col justify-between h-32 relative overflow-hidden group">
           <div className="absolute -right-6 -top-6 opacity-10 dark:opacity-5 text-pink-400 group-hover:scale-110 transition-transform duration-500">
              <ICONS.Calendar size={120} />
@@ -76,7 +77,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 2: Income - Soft Pastel Teal/Mint */}
         <div className="bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/40 dark:to-teal-900/10 p-4 rounded-2xl shadow-sm border border-teal-100 dark:border-teal-800 flex flex-col justify-between h-32 relative overflow-hidden group">
            <div className="absolute -right-6 -top-6 opacity-10 dark:opacity-5 text-teal-400 group-hover:scale-110 transition-transform duration-500">
              <ICONS.Money size={120} />
@@ -93,7 +93,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        {/* Card 3: Total - Soft Brand Gradient */}
          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-brand-300 to-brand-400 dark:from-brand-800 dark:to-brand-900 p-4 rounded-2xl shadow-sm text-white relative overflow-hidden group">
            <div className="absolute -right-6 -top-6 opacity-20 text-white group-hover:scale-110 transition-transform duration-500">
              <ICONS.Users size={120} />
@@ -110,7 +109,6 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Today's Agenda Preview */}
       <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden transition-colors">
         <div className="p-5 border-b border-gray-100 dark:border-zinc-700 flex justify-between items-center bg-gray-50/50 dark:bg-zinc-800/50">
           <h3 className="font-bold text-gray-900 dark:text-white flex items-center">
@@ -129,9 +127,9 @@ const Dashboard: React.FC = () => {
           ) : (
             todayAppointments.map(apt => (
               <div key={apt.id} className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors flex items-center gap-4">
-                <div className="flex-shrink-0 w-16 text-center">
-                  <span className="block text-[10px] text-gray-400 dark:text-zinc-500 font-bold mb-0.5">
-                    {format(new Date(apt.date), 'dd/MM')}
+                <div className="flex-shrink-0 w-20 text-center">
+                  <span className="block text-[10px] text-gray-400 dark:text-zinc-500 font-bold mb-0.5 uppercase">
+                    {format(parseISO(apt.date), 'dd/MM')} • {format(parseISO(apt.date), 'EEE', { locale: ptBR })}
                   </span>
                   <div className="bg-brand-50 dark:bg-zinc-700 rounded-lg p-2 border border-brand-100 dark:border-zinc-600">
                     <span className="block text-sm font-bold text-brand-600 dark:text-brand-300">{apt.time}</span>
@@ -146,8 +144,8 @@ const Dashboard: React.FC = () => {
                 <div className="flex-shrink-0 flex items-center gap-3">
                    <button
                       onClick={() => handleWhatsApp(apt)}
-                      className="text-green-500 hover:text-green-600 p-1.5 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                      title="Avisar no WhatsApp"
+                      className="text-green-500 hover:text-green-600 p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors border border-green-50 dark:border-green-900/30"
+                      title="Compartilhar no WhatsApp"
                    >
                       <ICONS.Whatsapp size={18} />
                    </button>

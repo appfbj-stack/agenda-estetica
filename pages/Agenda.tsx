@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { ICONS } from '../constants';
 import { getAppointmentsByDate, saveAppointment, deleteAppointment, getClients } from '../services/storageService';
 import { Appointment, Client, PaymentStatus } from '../types';
-import { format, addDays, subDays } from 'date-fns';
+import { format, addDays, subDays, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '../components/Button';
 import { AppointmentModal } from '../components/AppointmentModal';
@@ -41,20 +42,21 @@ const Agenda: React.FC = () => {
     const client = getClient(apt.clientId);
     if (!client) return;
 
-    const phone = client.phone.replace(/\D/g, ''); // Remove tudo que não é número
+    const phone = client.phone.replace(/\D/g, ''); 
     if (!phone) {
         alert("Este cliente não possui um telefone válido cadastrado.");
         return;
     }
 
-    const dateFormatted = format(new Date(apt.date), "dd/MM", { locale: ptBR });
-    const message = `Olá ${client.name.split(' ')[0]}! ✨ Passando para confirmar seu agendamento de *${apt.service}* para dia ${dateFormatted} às ${apt.time}. Aguardamos você!`;
+    const dateObj = parseISO(apt.date);
+    const dateFormatted = format(dateObj, "dd/MM (EEEE)", { locale: ptBR });
+    
+    const message = `Olá *${client.name.split(' ')[0]}*! ✨\n\nConfirmando seu agendamento:\n\n📅 *Data:* ${dateFormatted}\n⏰ *Horário:* ${apt.time}\n💆‍♀️ *Procedimento:* ${apt.service}\n\nLocal: EstéticaAgenda Pro\n_Aguardamos você!_`;
     
     const url = `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
-  // Helper to determine card border color based on status - PASTEL TONES
   const getStatusColor = (status: PaymentStatus) => {
       if (status === PaymentStatus.PAID) return 'border-green-300 bg-green-50/30';
       if (status === PaymentStatus.PARTIAL) return 'border-yellow-300 bg-yellow-50/30';
@@ -63,7 +65,6 @@ const Agenda: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col space-y-6">
-      {/* Header / Date Navigation */}
       <div className="bg-white dark:bg-zinc-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-700 flex flex-col md:flex-row justify-between items-center gap-4 transition-colors">
         <div className="flex items-center justify-between w-full md:w-auto bg-gray-50 dark:bg-zinc-900 rounded-xl p-1">
           <button onClick={handlePrevDay} className="p-3 hover:bg-white dark:hover:bg-zinc-800 rounded-lg text-gray-600 dark:text-gray-400 shadow-sm transition-all">
@@ -87,7 +88,6 @@ const Agenda: React.FC = () => {
         </Button>
       </div>
 
-      {/* Timeline View - Cards Style */}
       <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
         {appointments.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-gray-400 dark:text-zinc-600 p-10 h-64 bg-white dark:bg-zinc-800 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700">
@@ -113,11 +113,10 @@ const Agenda: React.FC = () => {
                 className={`group bg-white dark:bg-zinc-800 rounded-xl p-4 border shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col md:flex-row gap-4 md:items-center cursor-pointer border-l-4 ${getStatusColor(apt.status)} dark:border-t-zinc-700 dark:border-r-zinc-700 dark:border-b-zinc-700`}
                 onClick={() => { setEditingApt(apt); setIsModalOpen(true); }}
               >
-                 {/* Time Column with Date */}
                  <div className="flex md:flex-col items-center md:items-start gap-3 md:w-24 md:border-r border-gray-100 dark:border-zinc-700 md:pr-4">
                     <div className="flex flex-col items-center md:items-start w-full">
                         <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase mb-1 tracking-wider">
-                            {format(new Date(apt.date), 'dd/MM')}
+                            {format(parseISO(apt.date), 'dd/MM')} <span className="text-brand-300">•</span> {format(parseISO(apt.date), 'EEE', { locale: ptBR })}
                         </span>
                         <div className="bg-brand-50 dark:bg-zinc-700 text-brand-600 dark:text-brand-300 px-3 py-1.5 rounded-lg text-lg font-bold font-mono tracking-tight w-full text-center md:text-left">
                             {apt.time}
@@ -129,7 +128,6 @@ const Agenda: React.FC = () => {
                     </div>
                  </div>
 
-                 {/* Content Column */}
                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{getClientName(apt.clientId)}</h3>
@@ -147,7 +145,6 @@ const Agenda: React.FC = () => {
                     )}
                  </div>
 
-                 {/* Status/Actions Column */}
                  <div className="flex items-center justify-between md:justify-end gap-4 mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-gray-50 dark:border-zinc-700">
                     <div className="text-right">
                        <div className="text-lg font-bold text-gray-900 dark:text-white">R$ {apt.price.toFixed(2)}</div>
@@ -163,13 +160,12 @@ const Agenda: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center gap-1 pl-4 md:border-l border-gray-100 dark:border-zinc-700">
-                       {/* WhatsApp Button */}
                        <button 
                         onClick={(e) => { e.stopPropagation(); handleWhatsApp(apt); }}
-                        className="p-2 text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                        title="Confirmar no WhatsApp"
+                        className="p-2.5 text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors border border-green-100 dark:border-green-900/50"
+                        title="Compartilhar no WhatsApp"
                        >
-                         <ICONS.Whatsapp size={18} />
+                         <ICONS.Whatsapp size={20} />
                        </button>
 
                        <button 
